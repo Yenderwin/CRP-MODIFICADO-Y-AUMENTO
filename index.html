@@ -770,9 +770,22 @@
         function initTable() {
             dataRows = JSON.parse(localStorage.getItem('budgetData')) || initialData;
             renderTable();
-            loadExtrasData();
-            calcularExtras();
+            const extrasLoaded = loadExtrasData();
+            if (extrasLoaded) {
+                calcularExtras();
+            }
             renderSummaryView();
+        }
+
+        function updateData(index, field, value) {
+            const isNumericField = !['descripcion', 'unidad'].includes(field);
+            let processedValue = value;
+            if (isNumericField) {
+                processedValue = parseLocalFloat(value);
+            }
+
+            dataRows[index][field] = processedValue;
+            renderTable();
         }
 
         // Renderizar tabla Principal
@@ -810,19 +823,7 @@
                 tbody.appendChild(tr);
             });
             renderFooter();
-            calcularExtras();
             renderSummaryView();
-        }
-
-        function updateData(index, field, value) {
-            const isNumericField = !['descripcion', 'unidad'].includes(field);
-            let processedValue = value;
-            if (isNumericField) {
-                processedValue = parseLocalFloat(value);
-            }
-
-            dataRows[index][field] = processedValue;
-            renderTable();
         }
 
         function renderSummaryView() {
@@ -1342,12 +1343,9 @@
             const data = savedData ? JSON.parse(savedData) : [];
             const tbody = document.getElementById('dynamic-extra-body');
             tbody.innerHTML = '';
-            if (data.length === 0) {
-                const initialExtra = { part: 'E1', cod: '1', desc: 'PARTIDA EXTRA DE EJEMPLO', unid: 'und', qty: '100,00', pu: '10,00' };
-                data.push(initialExtra);
-            }
 
             data.forEach(row => {
+                if (!row.part && !row.desc) return; // Ignorar filas vacías
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="edit-extra-cell col-ex-part" style="text-align:center;">${row.part}</td>
@@ -1361,6 +1359,7 @@
                 `;
                 tbody.appendChild(tr);
             });
+            return data.length > 0;
         }
 
         function calcularExtras() {
