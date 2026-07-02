@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balance de Contrato - NEOA CRP Amuay | ALKA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&family=Open+Sans:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* --- ESTILOS ADAPTADOS DE INDEX.HTML --- */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #eef2f5;
+            display: grid;
+            gap: 40px;
+            grid-template-columns: 1fr;
+            margin: 0;
+            min-height: 100vh;
+            place-items: center;
+            padding: 40px 0;
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        .slide-container {
+            width: 1800px;
+            height: 900px;
+            background-color: #ffffff;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 45px 60px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+        }
+
+        .slide-container .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.1);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            z-index: 50;
+        }
+
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+            z-index: 10;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+            position: relative;
+        }
+
+        .slide-title {
+            font-family: 'Montserrat', sans-serif;
+            color: #1e3a8a;
+            font-size: 32px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .alka-logo-container {
+            background-color: #ffffff;
+            padding: 5px;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .alka-logo-img {
+            height: 80px;
+            object-fit: contain;
+        }
+
+        .content-area {
+            flex-grow: 1;
+            display: flex;
+            width: 100%;
+            z-index: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .view {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        .header-actions {
+            position: absolute;
+            right: 0;
+            top: -10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .action-btn {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #94a3b8;
+            width: 38px;
+            height: 38px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 18px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .action-btn:hover {
+            color: #1e3a8a;
+            transform: scale(1.1);
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 45px;
+            background-color: #ffffff;
+            min-width: 220px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .dropdown-content button {
+            color: #334155;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 14px;
+            transition: background 0.2s;
+            text-align: left;
+        }
+
+        .dropdown-content button:hover {
+            background-color: #f1f5f9;
+            color: #1e3a8a;
+        }
+
+        .dropdown-content button i {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .dropdown-content .menu-sep {
+            border-top: 1px solid #e2e8f0;
+            margin: 4px 0;
+        }
+
+        /* --- ESTILOS DE TABLA --- */
+        .table-container.dense {
+            width: 100%;
+            overflow-y: auto;
+            border-bottom: 2px solid #1e3a8a;
+        }
+
+        .table-container.dense table {
+            width: 100%;
+            min-width: 1600px;
+            table-layout: fixed;
+            border-collapse: collapse;
+            background: white;
+            white-space: nowrap;
+        }
+
+        .table-container.dense th {
+            background: #1e3a8a;
+            color: white;
+            padding: 8px 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .table-container.dense td {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 6px 4px;
+            font-size: 10.5px;
+            line-height: 1.2;
+            text-align: center;
+            vertical-align: middle;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .table-container.dense tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .table-container.dense tbody tr:hover {
+            background-color: #e2e8f0 !important;
+            cursor: default;
+        }
+
+        .table-container.dense td:nth-child(3) {
+            white-space: normal;
+            text-align: left;
+        }
+
+        .edit-cell {
+            transition: background-color 0.2s;
+        }
+
+        /* --- MODO EDICIÓN Y COLUMNAS RESIZABLES --- */
+        .edit-mode-active .edit-cell {
+            background-color: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            cursor: text;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .edit-mode-active .edit-cell:focus {
+            outline: none;
+            border: 2px solid #3b82f6;
+            background-color: #eff6ff;
+        }
+
+        .edit-mode-active .delete-btn {
+            display: inline-block;
+        }
+
+        th {
+            position: relative;
+        }
+
+        .resizer {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 6px;
+            height: 100%;
+            cursor: col-resize;
+            user-select: none;
+            z-index: 10;
+            display: none;
+        }
+
+        .edit-mode-active th .resizer {
+            display: block;
+        }
+
+        .resizer:hover,
+        .resizer.resizing {
+            background-color: rgba(59, 130, 246, 0.6);
+            border-right: 2px solid #2563eb;
+        }
+
+        .delete-btn {
+            display: none;
+            color: #ef4444;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* Ocultamiento Checkboxes */
+        .table-container:not(.edit-mode-active) .col-checkbox {
+            display: none;
+        }
+
+        .table-container:not(.edit-mode-active) .col-delete {
+            display: none;
+        }
+
+        .readonly {
+            background-color: #e9ecef;
+            font-weight: 600;
+            text-align: right;
+            color: #475569;
+        }
+
+        tfoot tr {
+            background-color: #ffff00;
+            color: black;
+            font-weight: bold;
+            position: sticky;
+            bottom: 0;
+            z-index: 3;
+        }
+
+        tfoot td {
+            padding: 10px 4px;
+            text-align: center;
+            font-size: 11px;
+            overflow: visible;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* --- ESTILOS VISTA RESUMEN --- */
+        .summary-view {
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .summary-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+        }
+
+        .summary-card.original::before {
+            background-color: #3b82f6;
+        }
+
+        .summary-card.increase::before {
+            background-color: #10b981;
+        }
+
+        .summary-card.decrease::before {
+            background-color: #ef4444;
+        }
+
+        .summary-card.modified::before {
+            background-color: #8b5cf6;
+        }
+
+        .summary-card.extras::before {
+            background-color: #f59e0b;
+        }
+
+        .summary-card h3 {
+            margin: 10px 0;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 15px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .summary-card .amount {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .summary-card.total {
+            grid-column: span 3;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            border: none;
+            padding: 40px 20px;
+        }
+
+        .summary-card.total::before {
+            display: none;
+        }
+
+        .summary-card.total i {
+            color: #93c5fd;
+        }
+
+        .summary-card.total h3 {
+            color: #bfdbfe;
+            font-size: 18px;
+        }
+
+        .summary-card.total .amount {
+            color: #ffffff;
+            font-size: 46px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* --- ESTILOS TABLA EXTRAS --- */
+        .extras-banner {
+            background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 12px;
+            box-shadow: 0 6px 18px rgba(217, 119, 6, 0.25);
+        }
+
+        .extras-banner i {
+            font-size: 32px;
+        }
+
+        .extras-banner h3 {
+            color: white;
+            font-size: 20px;
+            margin-bottom: 3px;
+        }
+
+        #extra-table-wrapper .table-container {
+            max-height: 450px;
+            overflow-y: auto;
+            border-bottom: 2px solid #d97706;
+        }
+
+        .table-extras {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            background: white;
+            white-space: nowrap;
+        }
+
+        .table-extras th {
+            background: #d97706;
+            color: white;
+            padding: 8px 12px;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .table-extras thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .table-extras td {
+            font-size: 11.5px;
+            padding: 5px 12px;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .table-extras tr:nth-child(even) {
+            background: #fef3c7;
+        }
+
+        .table-extras tbody tr:hover {
+            background-color: #fde68a !important;
+        }
+
+        .add-row-btn {
+            display: none;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        .edit-mode-active .add-row-btn {
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slide-container">
+        <div class="slide-header">
+            <div>
+                <h1 class="slide-title">Balance de Contrato</h1>
+                <p style="font-size: 14px; color: #64748b; margin-top: 5px;">Contrato NRO 4600144248 - Modernización
+                    NEOA</p>
+            </div>
+            <div class="header-actions">
+                <div class="dropdown">
+                    <button class="action-btn" onclick="toggleMenu()" title="Opciones">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <div id="dropdownMenu" class="dropdown-content">
+                        <button onclick="toggleEditMode()" id="editModeBtn"><i class="fa-solid fa-pen-to-square"></i>
+                            Modo Edición</button>
+                        <div class="menu-sep"></div>
+                        <button onclick="importExcel()"><i class="fa-solid fa-file-import"></i> Importar Excel
+                            Balance</button>
+                        <button onclick="exportExcel()"><i class="fa-solid fa-file-excel"></i> Exportar Excel
+                            Balance</button>
+                        <div class="menu-sep"></div>
+                        <button onclick="addRow()"><i class="fa-solid fa-plus"></i> Agregar Fila</button>
+                        <button onclick="deleteSelected()" style="color: #ef4444;"><i class="fa-solid fa-trash-can"></i>
+                            Eliminar Seleccionados</button>
+                        <div class="menu-sep"></div>
+                        <button onclick="resetColumnWidths()"><i class="fa-solid fa-arrows-left-right-to-line"></i>
+                            Restaurar Columnas</button>
+                        <button onclick="resetData()" style="color: #64748b;"><i class="fa-solid fa-rotate-left"></i>
+                            Restablecer Todo</button>
+                    </div>
+                </div>
+            </div>
+            <div class="alka-logo-container"><img src="alka.png" alt="ALKA" class="alka-logo-img"></div>
+        </div>
+
+        <div class="content-area" id="contentArea">
+            <input type="file" id="fileInput" accept=".xlsx, .xls" onchange="handleFileSelect(event)">
+            <input type="file" id="extrasImport" style="display: none;" accept=".xlsx, .xls"
+                onchange="importExtras(event)">
+
+            <div id="tableView" class="view" style="display: flex; flex-direction: column;">
+                <div id="tableContainer" class="table-container dense" style="flex-grow: 1;">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th class="col-checkbox" style="width: 2%;"><input type="checkbox" id="selectAll"
+                                        onchange="toggleSelectAll()"></th>
+                                <th style="width: 3%;">Part No.</th>
+                                <th style="width: 22%;">Descripción</th>
+                                <th style="width: 3%;">Unidad</th>
+                                <th style="width: 4%;">Cantidad</th>
+                                <th style="width: 6%;">Precio Unitario</th>
+                                <th style="width: 7%;">Total $</th>
+                                <th style="width: 3%;">Cant. Val 1</th>
+                                <th style="width: 4%;">Total Val 1</th>
+                                <th style="width: 3%;">Cant. Val 2</th>
+                                <th style="width: 4%;">Total Val 2</th>
+                                <th style="width: 3%;">Cant. Val 3</th>
+                                <th style="width: 4%;">Total Val 3</th>
+                                <th style="width: 3%;">Cant. Val 4</th>
+                                <th style="width: 4%;">Total Val 4</th>
+                                <th style="width: 3%;">Cant. Dism.</th>
+                                <th style="width: 4%;">Total Dism.</th>
+                                <th style="width: 3%;">Cant. Aum.</th>
+                                <th style="width: 4%;">Total Aum.</th>
+                                <th style="width: 3%;">Cant. Mod.</th>
+                                <th style="width: 5%;">Total Mod.</th>
+                                <th class="col-delete" style="width: 3%; background: #0f172a;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                        <tfoot id="tableFoot">
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div id="summaryView" class="view summary-view">
+            </div>
+
+            <div id="extrasView" class="view" style="display: none; flex-direction: column; padding-top: 15px;">
+                <div class="extras-banner">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div>
+                        <h3>Actividades NO contempladas en el Presupuesto Original</h3>
+                    </div>
+                </div>
+
+                <div id="extra-table-wrapper" style="flex-grow: 1; display: flex; flex-direction: column;">
+                    <div class="table-container" style="flex-grow: 1;">
+                        <table class="table-extras" id="extra-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 6%; text-align:center;">PART N°</th>
+                                    <th style="width: 6%; text-align:center;">CÓDIGO</th>
+                                    <th style="width: 50%;">DESCRIPCIÓN</th>
+                                    <th style="width: 6%; text-align:center;">UNID.</th>
+                                    <th style="width: 9%; text-align:right;">CANTIDAD</th>
+                                    <th style="width: 9%; text-align:right;">P.U. ($)</th>
+                                    <th style="width: 10%; text-align:right;">TOTAL ($)</th>
+                                    <th class="col-delete" style="width: 4%; background: #0f172a;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="dynamic-extra-body">
+                            </tbody>
+                            <tfoot>
+                                <tr style="background-color: #e9ecef; font-weight: bold;">
+                                    <td colspan="6" style="text-align: right; color: #475569; font-size: 13px;">SUBTOTAL
+                                        EXTRAS:</td>
+                                    <td style="text-align: right; color: #475569; font-size: 13px;"
+                                        id="extra-footer-subtotal">0,00</td>
+                                    <td class="col-delete"></td>
+                                </tr>
+                                <tr style="background-color: #e9ecef; font-weight: bold;">
+                                    <td colspan="6" style="text-align: right; color: #475569; font-size: 13px;">IVA
+                                        (16%):</td>
+                                    <td style="text-align: right; color: #475569; font-size: 13px;"
+                                        id="extra-footer-iva">0,00</td>
+                                    <td class="col-delete"></td>
+                                </tr>
+                                <tr style="background-color: #ffff00; font-weight: bold;">
+                                    <td colspan="6" style="text-align: right; color: black; font-size: 13px;">TOTAL
+                                        FINAL EXTRAS:</td>
+                                    <td style="text-align: right; color: black; font-size: 13px;"
+                                        id="extra-footer-total">0,00</td>
+                                    <td class="col-delete"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div style="display: flex; gap: 10px; padding-top: 10px;">
+                        <button class="add-row-btn" id="addRowExtraBtn" onclick="addRowExtra()">+ Agregar Partida
+                            Extra</button>
+                        <button class="add-row-btn" id="importExtraBtn" onclick="triggerImportExtras()"
+                            style="background-color: #22c55e;"><i class="fa-solid fa-file-import"></i> Importar
+                            Excel</button>
+                        <button class="add-row-btn" id="exportExtraBtn" onclick="exportExtrasExcel()"
+                            style="background-color: #10b981;"><i class="fa-solid fa-file-excel"></i> Exportar
+                            Excel</button>
+                        <button class="add-row-btn" id="resetExtraBtn" onclick="resetExtrasData()"
+                            style="background-color: #64748b;">Restablecer Tabla</button>
+                    </div>
+                </div>
+                <p style="text-align: right; font-size: 12px; color: #64748b; margin-top: 8px; font-style: italic;">
+                    * Se requiere aprobación formal de cantidades y APU para tramitación de valuación extra.
+                </p>
+            </div>
+
+        </div>
+
+        <button class="nav-arrow" style="left: 10px;" onclick="changeView(-1)"><i
+                class="fa-solid fa-chevron-left"></i></button>
+        <button class="nav-arrow" style="right: 10px;" onclick="changeView(1)"><i
+                class="fa-solid fa-chevron-right"></i></button>
+    </div>
+
+    <script>
+        let editMode = false;
+        let dataRows = [];
+        let isEditModeExtra = false;
+        let currentViewIndex = 0;
+        const views = ['tableView', 'extrasView', 'summaryView'];
+
+        const initialData = [
+            { partNo: 1, descripcion: "DESMONTAJE DE TABIQUE DE DRY WALL.", unidad: "m2", cantidad: 162.35, precioUnitario: 35.93, val1Cant: 108.45, val2Cant: 0, val3Cant: 0, val4Cant: 0, dismCant: 53.90, aumCant: 0, modCant: 108.45 },
+            { partNo: 2, descripcion: "REMOCIÓN DE TABLERO DE ELECTRICIDAD.", unidad: "und", cantidad: 2.00, precioUnitario: 46.44, val1Cant: 0, val2Cant: 0, val3Cant: 0, val4Cant: 0, dismCant: 2.00, aumCant: 0, modCant: 0 },
+            { partNo: 3, descripcion: "REMOCIÓN SIN RECUPERACION DE TUBERIAS Y CABLES DE ELECTRICIDAD.", unidad: "m", cantidad: 1408.03, precioUnitario: 4.33, val1Cant: 1454.80, val2Cant: 0, val3Cant: 0, val4Cant: 0, dismCant: 0, aumCant: 46.77, modCant: 1408.03 },
+            { partNo: 4, descripcion: "REMOCION SIN RECUPERACION DE TOMACORRIENTES E INTERRUPTORES", unidad: "pza", cantidad: 180.00, precioUnitario: 5.02, val1Cant: 102.00, val2Cant: 0, val3Cant: 0, val4Cant: 0, dismCant: 78.00, aumCant: 0, modCant: 102.00 },
+            { partNo: 5, descripcion: "DESMONTAJE DE PUERTAS DE VIDRIO CON SENSORES ELECTRICOS", unidad: "und", cantidad: 1.00, precioUnitario: 1001.26, val1Cant: 1.00, val2Cant: 0, val3Cant: 0, val4Cant: 0, dismCant: 0, aumCant: 0, modCant: 1.00 },
+        ];
+
+        if (!localStorage.getItem('alka_widths_fixed_v1')) {
+            localStorage.removeItem('alka_main_widths');
+            localStorage.removeItem('alka_extra_widths');
+            localStorage.setItem('alka_widths_fixed_v1', 'true');
+        }
+
+        // --- SISTEMA DE REDIMENSIÓN DE COLUMNAS ---
+        function initResizableColumns(tableId, storageKey) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            const cols = table.querySelectorAll('thead th');
+            const savedWidths = JSON.parse(localStorage.getItem(storageKey)) || {};
+
+            cols.forEach((col, index) => {
+                if (savedWidths[index]) {
+                    col.style.width = savedWidths[index];
+                }
+
+                const resizer = document.createElement('div');
+                resizer.classList.add('resizer');
+                col.appendChild(resizer);
+
+                let startX = 0;
+                let startWidth = 0;
+
+                const mouseDownHandler = function (e) {
+                    if (!editMode) return;
+
+                    startX = e.clientX;
+                    const styles = window.getComputedStyle(col);
+                    startWidth = parseInt(styles.width, 10);
+
+                    document.addEventListener('mousemove', mouseMoveHandler);
+                    document.addEventListener('mouseup', mouseUpHandler);
+                    resizer.classList.add('resizing');
+                };
+
+                const mouseMoveHandler = function (e) {
+                    const dx = e.clientX - startX;
+                    col.style.width = (startWidth + dx) + 'px';
+                };
+
+                const mouseUpHandler = function () {
+                    resizer.classList.remove('resizing');
+                    document.removeEventListener('mousemove', mouseMoveHandler);
+                    document.removeEventListener('mouseup', mouseUpHandler);
+
+                    savedWidths[index] = col.style.width;
+                    localStorage.setItem(storageKey, JSON.stringify(savedWidths));
+                };
+
+                resizer.addEventListener('mousedown', mouseDownHandler);
+            });
+        }
+
+        function initTable() {
+            dataRows = JSON.parse(localStorage.getItem('budgetData')) || initialData;
+            renderTable();
+            loadExtrasData();
+            calcularExtras();
+            renderSummaryView();
+        }
+
+        // Renderizar tabla Principal
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            const isEditable = editMode ? 'true' : 'false';
+
+            dataRows.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="col-checkbox"><input type="checkbox" class="row-select" data-index="${index}"></td>
+                    <td>${row.partNo}</td>
+                    <td class="edit-cell" contenteditable="${isEditable}" onblur="updateData(${index}, 'descripcion', this.innerText)">${row.descripcion}</td>
+                    <td class="edit-cell" contenteditable="${isEditable}" onblur="updateData(${index}, 'unidad', this.innerText)">${row.unidad}</td>
+                    <td class="edit-cell" contenteditable="${isEditable}" onblur="updateData(${index}, 'cantidad', this.innerText)">${formatNumber(row.cantidad)}</td>
+                    <td class="edit-cell" contenteditable="${isEditable}" onblur="updateData(${index}, 'precioUnitario', this.innerText)">${formatNumber(row.precioUnitario)}</td>
+                    <td class="readonly">${formatCurrency(row.cantidad * row.precioUnitario)}</td>
+                    <td class="edit-cell" contenteditable="${isEditable}" onblur="updateData(${index}, 'val1Cant', this.innerText)">${formatNumber(row.val1Cant)}</td>
+                    <td class="readonly">${formatCurrency(row.val1Cant * row.precioUnitario)}</td>
+                    <td class="edit-cell" contenteditable="${isEditable}" onblur="updateData(${index}, 'val2Cant', this.innerText)">${formatNumber(row.val2Cant)}</td>
+                    <td class="readonly">${formatCurrency(row.val2Cant * row.precioUnitario)}</td>
+                    <td class="edit-cell" contenteditable="${isEditable}" onblur="updateData(${index}, 'val3Cant', this.innerText)">${formatNumber(row.val3Cant)}</td>
+                    <td class="readonly">${formatCurrency(row.val3Cant * row.precioUnitario)}</td>
+                    <td class="edit-cell" contenteditable="${isEditable}" onblur="updateData(${index}, 'val4Cant', this.innerText)">${formatNumber(row.val4Cant)}</td>
+                    <td class="readonly">${formatCurrency(row.val4Cant * row.precioUnitario)}</td>
+                    <td class="edit-cell" contenteditable="${isEditable}" onblur="updateData(${index}, 'dismCant', this.innerText)">${formatNumber(row.dismCant)}</td>
+                    <td class="readonly">${formatCurrency(row.dismCant * row.precioUnitario)}</td>
+                    <td class="edit-cell" contenteditable="${isEditable}" onblur="updateData(${index}, 'aumCant', this.innerText)">${formatNumber(row.aumCant)}</td>
+                    <td class="readonly">${formatCurrency(row.aumCant * row.precioUnitario)}</td>
+                    <td class="edit-cell" contenteditable="${isEditable}" onblur="updateData(${index}, 'modCant', this.innerText)">${formatNumber(row.modCant)}</td>
+                    <td class="readonly">${formatCurrency(row.modCant * row.precioUnitario)}</td>
+                    <td class="col-delete"><button class="delete-btn" onclick="deleteRow(${index})"><i class="fa-solid fa-xmark"></i></button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            renderFooter();
+            calcularExtras();
+            renderSummaryView();
+        }
+
+        function updateData(index, field, value) {
+            const isNumericField = !['descripcion', 'unidad'].includes(field);
+            let processedValue = value;
+            if (isNumericField) {
+                processedValue = parseLocalFloat(value);
+            }
+
+            dataRows[index][field] = processedValue;
+            renderTable();
+        }
+
+        function renderSummaryView() {
+            const summaryContainer = document.getElementById('summaryView');
+            const totals = calculateColumnTotals();
+            const ivaRate = 0.16;
+            let extraWorksTotal = parseLocalFloat(localStorage.getItem('alka_extra_total')) || 0;
+
+            const totalOriginal = totals.total * (1 + ivaRate);
+            const totalAumentos = totals.totalAum * (1 + ivaRate);
+            const totalDisminuciones = totals.totalDism * (1 + ivaRate);
+            const totalModificado = totals.totalMod * (1 + ivaRate);
+            const totalFinal = totalModificado + (extraWorksTotal * (1 + ivaRate));
+
+            summaryContainer.innerHTML = `
+                <div class="summary-grid">
+                    <div class="summary-card original">
+                        <i class="fa-solid fa-file-contract" style="font-size: 28px; color: #3b82f6;"></i>
+                        <h3>Monto Original</h3>
+                        <p class="amount">${formatCurrency(totalOriginal)}</p>
+                    </div>
+                    <div class="summary-card increase">
+                        <i class="fa-solid fa-arrow-trend-up" style="font-size: 28px; color: #10b981;"></i>
+                        <h3>Aumentos</h3>
+                        <p class="amount">${formatCurrency(totalAumentos)}</p>
+                    </div>
+                    <div class="summary-card decrease">
+                        <i class="fa-solid fa-arrow-trend-down" style="font-size: 28px; color: #ef4444;"></i>
+                        <h3>Disminuciones</h3>
+                        <p class="amount">${formatCurrency(totalDisminuciones)}</p>
+                    </div>
+                    <div class="summary-card modified">
+                        <i class="fa-solid fa-scale-balanced" style="font-size: 28px; color: #8b5cf6;"></i>
+                        <h3>Monto Modificado</h3>
+                        <p class="amount">${formatCurrency(totalModificado)}</p>
+                    </div>
+                    <div class="summary-card extras">
+                        <i class="fa-solid fa-helmet-safety" style="font-size: 28px; color: #f59e0b;"></i>
+                        <h3>Obras Extras</h3>
+                        <p class="amount">${formatCurrency(extraWorksTotal * (1 + ivaRate))}</p>
+                    </div>
+                    <div class="summary-card total">
+                        <i class="fa-solid fa-handshake" style="font-size: 32px; margin-bottom: 5px;"></i>
+                        <h3>Total Contrato</h3>
+                        <p class="amount">${formatCurrency(totalFinal)}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFooter() {
+            const tfoot = document.getElementById('tableFoot');
+            const totals = calculateColumnTotals();
+            const ivaRate = 0.16;
+
+            const generateTotalRow = (label, data, multiplier = 1) => {
+                return `
+                    <td class="col-checkbox"></td>
+                    <td colspan="5" style="text-align: right; padding-right: 10px;">${label}</td>
+                    <td>${formatCurrency(data.total * multiplier)}</td>
+                    <td></td>
+                    <td>${formatCurrency(data.totalVal1 * multiplier)}</td>
+                    <td></td>
+                    <td>${formatCurrency(data.totalVal2 * multiplier)}</td>
+                    <td></td>
+                    <td>${formatCurrency(data.totalVal3 * multiplier)}</td>
+                    <td></td>
+                    <td>${formatCurrency(data.totalVal4 * multiplier)}</td>
+                    <td></td>
+                    <td>${formatCurrency(data.totalDism * multiplier)}</td>
+                    <td></td>
+                    <td>${formatCurrency(data.totalAum * multiplier)}</td>
+                    <td></td>
+                    <td>${formatCurrency(data.totalMod * multiplier)}</td>
+                    <td class="col-delete"></td>
+                `;
+            };
+
+            tfoot.innerHTML = `
+                <tr style="background-color: #e9ecef;">
+                    ${generateTotalRow('Subtotal General:', totals)}
+                </tr>
+                <tr style="background-color: #e9ecef;">
+                    ${generateTotalRow('IVA (16%):', totals, ivaRate)}
+                </tr>
+                <tr style="background-color: #ffff00;">
+                    ${generateTotalRow('Total General:', totals, 1 + ivaRate)}
+                </tr>
+            `;
+        }
+
+        // --- SOLUCIÓN DE RAÍZ AL PARSEO MATEMÁTICO ---
+        function formatCurrency(value) {
+            if (isNaN(value)) value = 0;
+            if (Math.abs(value) < 0.01) return "-";
+            return value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatNumber(value) {
+            if (isNaN(value)) value = 0;
+            if (Math.abs(value) < 0.01) return "-";
+            return value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function parseLocalFloat(str) {
+            if (str === null || str === undefined) return 0;
+            let s = str.toString().trim().replace(/\s/g, '');
+            if (s === "" || s === "-") return 0;
+
+            const dotCount = (s.match(/\./g) || []).length;
+            const commaCount = (s.match(/,/g) || []).length;
+
+            // Análisis Inteligente: Si el usuario escribe algo tipo "1007.32" y no tiene formato de miles español
+            if (dotCount === 1 && commaCount === 0 && !/\.\d{3}$/.test(s)) {
+                return parseFloat(s);
+            }
+
+            // Para todo lo demás (formato español), borra puntos y cambia la coma por punto nativo de JS
+            s = s.replace(/\./g, '').replace(',', '.');
+            const val = parseFloat(s);
+            return isNaN(val) ? 0 : val;
+        }
+
+        function calculateColumnTotals() {
+            const totals = {
+                cantidad: 0, val1Cant: 0, val2Cant: 0, val3Cant: 0, val4Cant: 0,
+                dismCant: 0, aumCant: 0, modCant: 0,
+                total: 0, totalVal1: 0, totalVal2: 0, totalVal3: 0, totalVal4: 0,
+                totalDism: 0, totalAum: 0, totalMod: 0
+            };
+            dataRows.forEach(row => {
+                totals.cantidad += (row.cantidad || 0);
+                totals.val1Cant += (row.val1Cant || 0);
+                totals.val2Cant += (row.val2Cant || 0);
+                totals.val3Cant += (row.val3Cant || 0);
+                totals.val4Cant += (row.val4Cant || 0);
+                totals.dismCant += (row.dismCant || 0);
+                totals.aumCant += (row.aumCant || 0);
+                totals.modCant += (row.modCant || 0);
+                totals.total += (row.cantidad || 0) * (row.precioUnitario || 0);
+                totals.totalVal1 += (row.val1Cant || 0) * (row.precioUnitario || 0);
+                totals.totalVal2 += (row.val2Cant || 0) * (row.precioUnitario || 0);
+                totals.totalVal3 += (row.val3Cant || 0) * (row.precioUnitario || 0);
+                totals.totalVal4 += (row.val4Cant || 0) * (row.precioUnitario || 0);
+                totals.totalDism += (row.dismCant || 0) * (row.precioUnitario || 0);
+                totals.totalAum += (row.aumCant || 0) * (row.precioUnitario || 0);
+                totals.totalMod += (row.modCant || 0) * (row.precioUnitario || 0);
+            });
+            return totals;
+        }
+
+        function changeView(direction) {
+            document.getElementById(views[currentViewIndex]).style.display = 'none';
+
+            currentViewIndex += direction;
+            if (currentViewIndex >= views.length) {
+                currentViewIndex = 0;
+            } else if (currentViewIndex < 0) {
+                currentViewIndex = views.length - 1;
+            }
+
+            document.getElementById(views[currentViewIndex]).style.display = 'flex';
+        }
+
+        function toggleMenu() {
+            const menu = document.getElementById('dropdownMenu');
+            menu.classList.toggle('show');
+        }
+
+        document.addEventListener('click', function (event) {
+            const menu = document.getElementById('dropdownMenu');
+            const button = event.target.closest('.action-btn');
+
+            if (!button && !menu.contains(event.target)) {
+                menu.classList.remove('show');
+            }
+        });
+
+        // --- LÓGICA EXCEL DE PÁGINA 1 (PRINCIPAL) ---
+        function importExcel() { document.getElementById('fileInput').click(); }
+
+        function exportExcel() {
+            const exportData = dataRows.map(row => ({
+                'Part No.': row.partNo,
+                'Descripción': row.descripcion,
+                'Unidad': row.unidad,
+                'Cantidad': row.cantidad,
+                'Precio Unitario': row.precioUnitario,
+                'Total $': row.cantidad * row.precioUnitario,
+                'Cant. Val 1': row.val1Cant,
+                'Total Val 1': row.val1Cant * row.precioUnitario,
+                'Cant. Val 2': row.val2Cant,
+                'Total Val 2': row.val2Cant * row.precioUnitario,
+                'Cant. Val 3': row.val3Cant,
+                'Total Val 3': row.val3Cant * row.precioUnitario,
+                'Cant. Val 4': row.val4Cant,
+                'Total Val 4': row.val4Cant * row.precioUnitario,
+                'Cant. Dism.': row.dismCant,
+                'Total Dism.': row.dismCant * row.precioUnitario,
+                'Cant. Aum.': row.aumCant,
+                'Total Aum.': row.aumCant * row.precioUnitario,
+                'Cant. Mod.': row.modCant,
+                'Total Mod.': row.modCant * row.precioUnitario
+            }));
+
+            if (exportData.length === 0) {
+                alert('No hay datos para exportar.');
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            XLSX.utils.book_append_sheet(wb, ws, "Balance General");
+            const fecha = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `Balance_Contrato_${fecha}.xlsx`);
+        }
+
+        function resetColumnWidths() {
+            localStorage.removeItem('alka_main_widths');
+            localStorage.removeItem('alka_extra_widths');
+            alert('El tamaño de las columnas ha sido restaurado exitosamente. La página se recargará ahora.');
+            location.reload();
+        }
+
+        function resetData() {
+            if (confirm('¿Está seguro de restablecer todos los datos a los valores iniciales?')) {
+                localStorage.removeItem('budgetData');
+                localStorage.removeItem('alka_extra_data');
+                localStorage.removeItem('alka_extra_total');
+                localStorage.removeItem('alka_main_widths');
+                localStorage.removeItem('alka_extra_widths');
+                initTable();
+            }
+        }
+
+        function toggleEditMode() {
+            editMode = !editMode;
+            isEditModeExtra = editMode;
+
+            renderTable();
+            const tableContainer = document.getElementById('tableContainer');
+            const extraWrapper = document.getElementById('extra-table-wrapper');
+            const btn = document.getElementById('editModeBtn');
+
+            if (editMode) {
+                tableContainer.classList.add('edit-mode-active');
+                extraWrapper.classList.add('edit-mode-active');
+                document.querySelectorAll('.edit-extra-cell').forEach(cell => cell.contentEditable = true);
+
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Cambios';
+                btn.style.color = "#10b981";
+            } else {
+                tableContainer.classList.remove('edit-mode-active');
+                extraWrapper.classList.remove('edit-mode-active');
+                document.querySelectorAll('.edit-extra-cell').forEach(cell => cell.contentEditable = false);
+
+                sortTableRowsExtra();
+                calcularExtras();
+
+                btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Modo Edición';
+                btn.style.color = "";
+                localStorage.setItem('budgetData', JSON.stringify(dataRows));
+            }
+        }
+
+        function addRow() {
+            const newRow = {
+                partNo: dataRows.length + 1,
+                descripcion: "Nueva partida",
+                unidad: "und",
+                cantidad: 0,
+                precioUnitario: 0,
+                val1Cant: 0, val2Cant: 0, val3Cant: 0, val4Cant: 0,
+                dismCant: 0, aumCant: 0, modCant: 0
+            };
+
+            dataRows.push(newRow);
+            localStorage.setItem('budgetData', JSON.stringify(dataRows));
+            renderTable();
+        }
+
+        function deleteRow(index) {
+            if (confirm(`¿Está seguro de eliminar la partida "${dataRows[index].descripcion}"?`)) {
+                dataRows.splice(index, 1);
+                dataRows.forEach((row, i) => { row.partNo = i + 1; });
+
+                localStorage.setItem('budgetData', JSON.stringify(dataRows));
+                renderTable();
+            }
+        }
+
+        function deleteSelected() {
+            const checkboxes = document.querySelectorAll('.row-select:checked');
+            const indexes = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index)).sort((a, b) => b - a);
+
+            if (indexes.length === 0) {
+                alert('No hay filas seleccionadas para eliminar.');
+                return;
+            }
+
+            if (confirm(`¿Está seguro de eliminar ${indexes.length} fila(s)?`)) {
+                indexes.forEach(index => {
+                    dataRows.splice(index, 1);
+                });
+
+                dataRows.forEach((row, index) => {
+                    row.partNo = index + 1;
+                });
+
+                localStorage.setItem('budgetData', JSON.stringify(dataRows));
+                renderTable();
+            }
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.row-select');
+            checkboxes.forEach(cb => cb.checked = selectAll.checked);
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+                    const importedRows = jsonData.map((row, index) => ({
+                        partNo: row['Part No.'] || index + 1,
+                        descripcion: row['Descripción'] || '',
+                        unidad: row['Unidad'] || 'und',
+                        cantidad: parseFloat(row['Cantidad']) || 0,
+                        precioUnitario: parseFloat(row['Precio Unitario']) || 0,
+                        val1Cant: parseFloat(row['Cant. Val 1']) || 0,
+                        val2Cant: parseFloat(row['Cant. Val 2']) || 0,
+                        val3Cant: parseFloat(row['Cant. Val 3']) || 0,
+                        val4Cant: parseFloat(row['Cant. Val 4']) || 0,
+                        dismCant: parseFloat(row['Cant. Dism.']) || 0,
+                        aumCant: parseFloat(row['Cant. Aum.']) || 0,
+                        modCant: parseFloat(row['Cant. Mod.']) || 0
+                    }));
+
+                    if (importedRows.length > 0) {
+                        dataRows = importedRows;
+                    } else {
+                        throw new Error("El archivo Excel no contiene datos o el formato es incorrecto.");
+                    }
+
+                    localStorage.setItem('budgetData', JSON.stringify(dataRows));
+                    renderTable();
+                    alert('Datos importados correctamente');
+                } catch (error) {
+                    alert('Error al importar el archivo: ' + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            event.target.value = '';
+        }
+
+        // ==========================================
+        // LÓGICA IMPORTAR/EXPORTAR EXCEL PÁGINA 2 (EXTRAS)
+        // ==========================================
+        function triggerImportExtras() {
+            document.getElementById('extrasImport').click();
+        }
+
+        function importExtras(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+                    const tbody = document.getElementById('dynamic-extra-body');
+                    tbody.innerHTML = '';
+
+                    jsonData.forEach((row, index) => {
+                        const tr = document.createElement('tr');
+
+                        const part = row['PART N°'] || row['Part N°'] || row['PART'] || `E${index + 1}`;
+                        const cod = row['CÓDIGO'] || row['Código'] || row['Codigo'] || `${index + 1}`;
+                        const desc = row['DESCRIPCIÓN'] || row['Descripción'] || row['Descripcion'] || 'NUEVA PARTIDA EXTRA';
+                        const unid = row['UNID.'] || row['Unidad'] || row['Unid'] || 'und';
+
+                        // Obtenemos los valores puros de Excel (nativos de JS)
+                        const rawQty = parseFloat(row['CANTIDAD'] || row['Cantidad'] || 0);
+                        const rawPu = parseFloat(row['P.U. ($)'] || row['P.U.'] || row['Precio Unitario'] || 0);
+
+                        tr.innerHTML = `
+                            <td class="edit-extra-cell col-ex-part" style="text-align:center;">${part}</td>
+                            <td class="edit-extra-cell col-ex-cod" style="text-align:center;">${cod}</td>
+                            <td class="edit-extra-cell col-ex-desc">${desc}</td>
+                            <td class="edit-extra-cell col-ex-unid" style="text-align:center;">${unid}</td>
+                            <td class="edit-extra-cell col-ex-qty" style="text-align:right;">${formatNumber(rawQty)}</td>
+                            <td class="edit-extra-cell col-ex-pu" style="text-align:right;">${formatNumber(rawPu)}</td>
+                            <td class="col-ex-total" style="text-align:right;">0,00</td>
+                            <td class="col-delete"><button class="delete-btn" onclick="deleteRowExtra(this)"><i class="fa-solid fa-xmark"></i></button></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    const isEditable = editMode ? 'true' : 'false';
+                    document.querySelectorAll('.edit-extra-cell').forEach(cell => cell.contentEditable = isEditable);
+
+                    calcularExtras();
+                    alert('¡Obras Extras importadas con éxito!');
+                } catch (error) {
+                    alert('Error al procesar el Excel de Extras: ' + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            event.target.value = '';
+        }
+
+        function exportExtrasExcel() {
+            const data = [];
+            document.querySelectorAll('#dynamic-extra-body tr').forEach(tr => {
+                const part = tr.querySelector('.col-ex-part').innerText.trim();
+                const cod = tr.querySelector('.col-ex-cod').innerText.trim();
+                const desc = tr.querySelector('.col-ex-desc').innerText.trim();
+                const unid = tr.querySelector('.col-ex-unid').innerText.trim();
+                const qty = parseLocalFloat(tr.querySelector('.col-ex-qty').innerText);
+                const pu = parseLocalFloat(tr.querySelector('.col-ex-pu').innerText);
+                const total = qty * pu;
+
+                data.push({
+                    'PART N°': part,
+                    'CÓDIGO': cod,
+                    'DESCRIPCIÓN': desc,
+                    'UNID.': unid,
+                    'CANTIDAD': qty,
+                    'P.U. ($)': pu,
+                    'TOTAL ($)': total
+                });
+            });
+
+            if (data.length === 0) {
+                alert('No hay datos de extras para exportar.');
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+
+            ws['!cols'] = [{ wch: 10 }, { wch: 10 }, { wch: 45 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 15 }];
+
+            XLSX.utils.book_append_sheet(wb, ws, "Obras Extras");
+            const fecha = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `Obras_Extras_${fecha}.xlsx`);
+        }
+
+        function addRowExtra() {
+            const tbody = document.getElementById('dynamic-extra-body');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="edit-extra-cell col-ex-part" style="text-align:center;">E${tbody.rows.length + 1}</td>
+                <td class="edit-extra-cell col-ex-cod" style="text-align:center;">${tbody.rows.length + 1}</td>
+                <td class="edit-extra-cell col-ex-desc">NUEVA PARTIDA EXTRA</td>
+                <td class="edit-extra-cell col-ex-unid" style="text-align:center;">und</td>
+                <td class="edit-extra-cell col-ex-qty" style="text-align:right;">0,00</td>
+                <td class="edit-extra-cell col-ex-pu" style="text-align:right;">0,00</td>
+                <td class="col-ex-total" style="text-align:right;">0,00</td>
+                <td class="col-delete"><button class="delete-btn" onclick="deleteRowExtra(this)"><i class="fa-solid fa-xmark"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+            if (editMode) tr.querySelectorAll('.edit-extra-cell').forEach(cell => cell.contentEditable = true);
+            calcularExtras();
+        }
+
+        function sortTableRowsExtra() {
+            const tbody = document.getElementById('dynamic-extra-body');
+            if (!tbody) return;
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                const valA = a.querySelector('.col-ex-part').innerText.trim();
+                const valB = b.querySelector('.col-ex-part').innerText.trim();
+                return valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' });
+            });
+
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function deleteRowExtra(btn) {
+            btn.closest('tr').remove();
+            calcularExtras();
+        }
+
+        function saveExtrasData() {
+            const data = [];
+            document.querySelectorAll('#dynamic-extra-body tr').forEach(tr => {
+                data.push({
+                    part: tr.querySelector('.col-ex-part').innerText.trim(),
+                    cod: tr.querySelector('.col-ex-cod').innerText.trim(),
+                    desc: tr.querySelector('.col-ex-desc').innerText.trim(),
+                    unid: tr.querySelector('.col-ex-unid').innerText.trim(),
+                    qty: tr.querySelector('.col-ex-qty').innerText.trim(),
+                    pu: tr.querySelector('.col-ex-pu').innerText.trim()
+                });
+            });
+            localStorage.setItem('alka_extra_data', JSON.stringify(data));
+        }
+
+        function loadExtrasData() {
+            const savedData = localStorage.getItem('alka_extra_data');
+            const data = savedData ? JSON.parse(savedData) : [];
+            const tbody = document.getElementById('dynamic-extra-body');
+            tbody.innerHTML = '';
+            if (data.length === 0) {
+                const initialExtra = { part: 'E1', cod: '1', desc: 'PARTIDA EXTRA DE EJEMPLO', unid: 'und', qty: '100,00', pu: '10,00' };
+                data.push(initialExtra);
+            }
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="edit-extra-cell col-ex-part" style="text-align:center;">${row.part}</td>
+                    <td class="edit-extra-cell col-ex-cod" style="text-align:center;">${row.cod}</td>
+                    <td class="edit-extra-cell col-ex-desc">${row.desc}</td>
+                    <td class="edit-extra-cell col-ex-unid" style="text-align:center;">${row.unid}</td>
+                    <td class="edit-extra-cell col-ex-qty" style="text-align:right;">${row.qty}</td>
+                    <td class="edit-extra-cell col-ex-pu" style="text-align:right;">${row.pu}</td>
+                    <td class="col-ex-total" style="text-align:right;">0,00</td>
+                    <td class="col-delete"><button class="delete-btn" onclick="deleteRowExtra(this)"><i class="fa-solid fa-xmark"></i></button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function calcularExtras() {
+            let sumTotal = 0;
+            document.querySelectorAll('#dynamic-extra-body tr').forEach(tr => {
+                let qty = parseLocalFloat(tr.querySelector('.col-ex-qty').innerText);
+                let pu = parseLocalFloat(tr.querySelector('.col-ex-pu').innerText);
+                let total = qty * pu;
+                tr.querySelector('.col-ex-total').innerText = formatCurrency(total);
+                sumTotal += total;
+            });
+
+            const iva = sumTotal * 0.16;
+            const totalFinal = sumTotal + iva;
+
+            document.getElementById('extra-footer-subtotal').innerText = formatCurrency(sumTotal);
+            document.getElementById('extra-footer-iva').innerText = formatCurrency(iva);
+            document.getElementById('extra-footer-total').innerText = formatCurrency(totalFinal);
+
+            localStorage.setItem('alka_extra_total', sumTotal);
+            saveExtrasData();
+            renderSummaryView();
+        }
+
+        function resetExtrasData() {
+            if (confirm('¿Estás seguro de que deseas restablecer esta tabla?')) {
+                localStorage.removeItem('alka_extra_data');
+                localStorage.removeItem('alka_extra_total');
+                loadExtrasData();
+                calcularExtras();
+            }
+        }
+
+        document.getElementById('dynamic-extra-body').addEventListener('input', calcularExtras);
+
+        window.onload = function () {
+            initTable();
+            changeView(0);
+            initResizableColumns('dataTable', 'alka_main_widths');
+            initResizableColumns('extra-table', 'alka_extra_widths');
+        };
+    </script>
+</body>
+
+</html>
